@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Stream Test</title>
+</head>
+<body>
+    <img id="video-frame" src="" alt="Video Frame" style="border:1px solid #ccc;max-width:100%;">
+    <div id="status" style="margin-top:10px;color:#333;"></div>
+    <script>
+        function fetchFrame() {
+            fetch('http://10.82.191.213:5252/api/image', {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const img = document.getElementById('video-frame');
+                    const statusDiv = document.getElementById('status');
+                    if (data.status === "success") {
+                        img.src = `data:image/jpeg;base64,${data.imageData}`;
+                        statusDiv.innerText = "收到正常图片：" + data.message;
+                        img.style.opacity = "1";
+                    } else if (data.status === "test") {
+                        img.src = `data:image/jpeg;base64,${data.imageData}`;
+                        statusDiv.innerText = "收到测试图片（纯红色）：" + data.message;
+                        img.style.opacity = "0.7";
+                    } else {
+                        img.src = "";
+                        statusDiv.innerText = "无图片数据：" + data.message;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('status').innerText = `获取图片失败: ${error.message}`;
+                });
+        }
+
+        setInterval(fetchFrame, 33); // 每300ms请求一次
+    </script>
+</body>
+</html>
