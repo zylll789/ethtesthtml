@@ -3,42 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <title>Video Stream Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fafbfc;
+            background-image: url('background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center center;
+        }
+
+        .logo-container {
+            width: 100%;
+            text-align: center;
+            margin-top: 24px;
+            margin-bottom: 16px;
+        }
+
+        .image-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #video-frame {
+            border: 1px solid #ccc;
+            max-width: 90vw;
+            max-height: 60vh;
+            display: block;
+            margin: 0 auto;
+            background: #fff;
+        }
+
+        #status {
+            width: 100%;
+            text-align: center;
+            margin: 24px 0 16px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+    </style>
 </head>
 <body>
-    <img id="video-frame" src="" alt="Video Frame" style="border:1px solid #ccc;max-width:100%;">
-    <div id="status" style="margin-top:10px;color:#333;"></div>
+    <div class="logo-container">
+        <img src="logo.png" alt="Logo" style="max-height:120px;">
+    </div>
+    <div class="image-container">
+        <img id="video-frame" src="" alt="Video Frame">
+    </div>
+    <div id="status"></div>
     <script>
         function fetchFrame() {
-            fetch('http://10.82.191.213:5252/api/image', {
+            fetch('http://172.20.10.6:5252/api/image', {
                 method: 'GET',
-                mode: 'cors',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                mode: 'cors'
             })
-                .then(response => response.json())
-                .then(data => {
+                .then(response => {
+                    if (!response.ok) throw new Error("网络错误");
+                    return response.blob();
+                })
+                .then(blob => {
                     const img = document.getElementById('video-frame');
-                    const statusDiv = document.getElementById('status');
-                    if (data.status === "success") {
-                        img.src = `data:image/jpeg;base64,${data.imageData}`;
-                        statusDiv.innerText = "收到正常图片：" + data.message;
-                        img.style.opacity = "1";
-                    } else if (data.status === "test") {
-                        img.src = `data:image/jpeg;base64,${data.imageData}`;
-                        statusDiv.innerText = "收到测试图片（纯红色）：" + data.message;
-                        img.style.opacity = "0.7";
-                    } else {
-                        img.src = "";
-                        statusDiv.innerText = "无图片数据：" + data.message;
-                    }
+                    img.src = URL.createObjectURL(blob);
+                    document.getElementById('status').innerText = "收到图片，大小：" + blob.size + " 字节";
                 })
                 .catch(error => {
                     document.getElementById('status').innerText = `获取图片失败: ${error.message}`;
                 });
         }
 
-        setInterval(fetchFrame, 33); // 每300ms请求一次
+        setInterval(fetchFrame, 33); // 建议降低频率，减少资源消耗
     </script>
 </body>
 </html>
